@@ -23,6 +23,9 @@ public final class FirebaseCandidateClient {
         this(System.getenv().getOrDefault("URNA_API_URL", "http://127.0.0.1:7070"));
     }
     public FirebaseCandidateClient(String baseUrl) {
+        if (baseUrl == null || baseUrl.isBlank()) {
+            throw new IllegalArgumentException("Endereco da API obrigatorio");
+        }
         this.baseUrl = baseUrl.replaceAll("/+$", "");
     }
 

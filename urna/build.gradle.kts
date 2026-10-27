@@ -30,35 +30,3 @@ tasks.register<JavaExec>("run") {
     classpath = sourceSets["main"].runtimeClasspath
     mainClass.set("com.lumi2021.urna.Program")
 }
-
-tasks.register<JavaExec>("demoFirebase") {
-    group = "application"
-    description = "Consulta um candidato da API Firebase (ex.: Bulbasaur 12001)"
-    classpath = sourceSets["main"].runtimeClasspath
-    mainClass.set("com.lumi2021.urna.integration.FirebaseIntegrationDemo")
-}
-
-tasks.register<JavaExec>("demoVotacao") {
-
-    group = "application"
-
-    description = "Testa o cliente HTTP de votacao"
-
-    classpath = sourceSets["main"].runtimeClasspath
-
-    mainClass.set(
-        "com.lumi2021.urna.integration.FirebaseVotingDemo"
-    )
-}
-
-tasks.register<JavaExec>("demoVotacaoPost") {
-    group = "verification"
-
-    description = "Testa o registro de votos via HTTP POST"
-
-    classpath = sourceSets["main"].runtimeClasspath
-
-    mainClass.set(
-        "com.lumi2021.urna.integration.FirebaseVotingPostDemo"
-    )
-}

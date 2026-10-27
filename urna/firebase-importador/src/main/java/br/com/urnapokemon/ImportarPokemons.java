@@ -58,8 +58,8 @@ public final class ImportarPokemons {
                 .setProjectId(projeto)
                 .build();
         FirebaseApp app = FirebaseApp.initializeApp(options);
+        Firestore db = FirestoreClient.getFirestore(app);
         try {
-            Firestore db = FirestoreClient.getFirestore(app);
 
             List<DocumentReference> partidoRefs = new ArrayList<>();
             for (String id : PARTIDOS_VALIDOS) {
@@ -108,6 +108,7 @@ public final class ImportarPokemons {
             System.out.printf("Importacao concluida: %d criados, %d preservados.%n",
                     ausentes.size(), existentes);
         } finally {
+            db.close();
             app.delete();
         }
     }
@@ -159,7 +160,7 @@ public final class ImportarPokemons {
                 linhas.add(registro);
             }
         }
-        if (linhas.size() != 151 || !partidosVistos.equals(PARTIDOS_VALIDOS) && !partidosVistos.containsAll(PARTIDOS_VALIDOS)) {
+        if (linhas.size() != 151 || !partidosVistos.containsAll(PARTIDOS_VALIDOS)) {
             throw new IllegalArgumentException("O CSV deve conter 151 Pokemon e os 15 tipos primarios.");
         }
         return linhas;
