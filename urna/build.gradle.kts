@@ -14,15 +14,17 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
-    // javalin 7.0 tem uma API muito cursed
+    // Dependencias preexistentes - preservadas
     implementation("io.javalin:javalin:6.7.0")
     runtimeOnly("org.slf4j:slf4j-simple:2.0.16")
+
+    // Necessaria apenas para desserializar o JSON recebido pela interface HTTP
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.18.3")
 }
 
 tasks.test {
     useJUnitPlatform()
 }
-
 tasks.register<JavaExec>("run") {
     group = "application"
     description = "Executa o programa principal"
@@ -30,3 +32,37 @@ tasks.register<JavaExec>("run") {
     classpath = sourceSets["main"].runtimeClasspath
     mainClass.set("com.lumi2021.urna.Program")
 }
+
+// Teste de leitura sem abrir a interface Swing
+tasks.register<JavaExec>("demoFirebase") {
+    group = "application"
+    description = "Consulta um candidato da API Firebase (ex.: Bulbasaur 12001)"
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("com.lumi2021.urna.integration.FirebaseIntegrationDemo")
+}
+
+tasks.register<JavaExec>("demoVotacao") {
+
+    group = "application"
+
+    description = "Testa o cliente HTTP de votacao"
+
+    classpath = sourceSets["main"].runtimeClasspath
+
+    mainClass.set(
+        "com.lumi2021.urna.integration.FirebaseVotingDemo"
+    )
+}
+
+tasks.register<JavaExec>("demoVotacaoPost") {
+    group = "verification"
+
+    description = "Testa o registro de votos via HTTP POST"
+
+    classpath = sourceSets["main"].runtimeClasspath
+
+    mainClass.set(
+        "com.lumi2021.urna.integration.FirebaseVotingPostDemo"
+    )
+}
+
