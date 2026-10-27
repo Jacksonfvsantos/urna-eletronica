@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-/** Consultas complementares; somente leitura, sem modificar a apuracao. */
 public final class FirestoreLeituras {
     private final Firestore db;
     private final String eleicaoId;

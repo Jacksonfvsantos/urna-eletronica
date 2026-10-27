@@ -19,11 +19,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.lumi2021.urna.firebase.backend.ValidacaoVotacao.VotacaoException;
 
-/**
- * Escrita transacional da urna demonstrativa.
- * O documento da sessao nao guarda as escolhas nem dados do eleitor.
- * NAO e um protocolo homologado para eleicoes reais.
- */
+/** Registra votos sem associar as escolhas a identidade do eleitor. */
 public final class RegistroVotacaoService {
     private final Firestore db;
     private final String eleicaoId;
@@ -36,7 +32,6 @@ public final class RegistroVotacaoService {
     public record SessaoCriada(String sessaoId, String status, String expiraEm) { }
     public record ConfirmacaoVotacao(String sessaoId, String status) { }
 
-    /** Somente o mesario autenticado pode emitir uma sessao. */
     public SessaoCriada abrirSessao() throws Exception {
         DocumentReference eleicaoRef = db.collection("eleicoes").document(eleicaoId);
         String id = UUID.randomUUID().toString();
@@ -58,10 +53,6 @@ public final class RegistroVotacaoService {
         }
     }
 
-    /**
-     * Uma unica transacao: valida ambos os cargos, atualiza os contadores,
-     * incrementa candidatos validos e consome a sessao uma so vez.
-     */
     public ConfirmacaoVotacao registrar(VotacaoRequest request) throws Exception {
         Map<String, VotoRequest> votos = ValidacaoVotacao.validar(request);
         DocumentReference eleicaoRef = db.collection("eleicoes").document(eleicaoId);
@@ -72,7 +63,7 @@ public final class RegistroVotacaoService {
         DocumentReference apuracaoPrefeito = eleicaoRef.collection("apuracao").document("PREFEITO");
         try {
             return db.runTransaction(tx -> {
-                // Todas as leituras ocorrem antes de qualquer escrita.
+                // O Firestore exige que as leituras da transacao precedam as escritas.
                 DocumentSnapshot eleicao = tx.get(eleicaoRef).get();
                 DocumentSnapshot sessao = tx.get(sessaoRef).get();
                 DocumentSnapshot apVereador = tx.get(apuracaoVereador).get();
@@ -116,7 +107,6 @@ public final class RegistroVotacaoService {
                     candidatosValidos.put(cargo, candidato.getReference());
                 }
 
-                // Escritas atomicas: os dois cargos, candidatos validos e a sessao.
                 for (String cargo : new String[]{"VEREADOR", "PREFEITO"}) {
                     VotoRequest voto = votos.get(cargo);
                     DocumentReference apuracaoRef = "VEREADOR".equals(cargo)
@@ -134,7 +124,7 @@ public final class RegistroVotacaoService {
                         tx.update(candidatosValidos.get(cargo), "votos", FieldValue.increment(1L));
                     }
                 }
-                // Sem escolhas individuais ou identificacao do eleitor neste documento.
+                // A sessao armazena apenas o estado do processamento.
                 tx.update(sessaoRef, Map.of(
                         "status", "CONCLUIDA",
                         "concluidaEm", FieldValue.serverTimestamp()));

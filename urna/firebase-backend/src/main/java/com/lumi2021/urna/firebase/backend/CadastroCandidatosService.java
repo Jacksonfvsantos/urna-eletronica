@@ -12,10 +12,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Escrita administrativa. Executar apenas no backend confiavel.
- * Nunca expor o Firebase Admin SDK nem o token administrativo no aplicativo Swing.
- */
+/** Cadastro administrativo restrito ao backend. */
 public final class CadastroCandidatosService {
     private final Firestore db;
     private final String eleicaoId;
@@ -48,13 +45,13 @@ public final class CadastroCandidatosService {
         CollectionReference candidatosRef = eleicaoRef.collection("candidatos");
         DocumentReference candidatoRef = candidatosRef.document(requisicao.pokemonId());
         DocumentReference pokemonRef = db.collection("pokemons").document(requisicao.pokemonId());
-        // Reserva atomica por cargo e numero para novas candidaturas criadas pela API.
+        // Reserva o numero por cargo para evitar cadastros concorrentes.
         DocumentReference numeroRef = eleicaoRef.collection("numerosCandidatos")
                 .document(requisicao.cargo() + "_" + requisicao.numero());
 
         try {
             return db.runTransaction(tx -> {
-                // Todas as leituras sao feitas antes das escritas.
+                // O Firestore exige que as leituras da transacao precedam as escritas.
                 DocumentSnapshot eleicao = tx.get(eleicaoRef).get();
                 DocumentSnapshot pokemon = tx.get(pokemonRef).get();
                 DocumentSnapshot existente = tx.get(candidatoRef).get();
@@ -115,7 +112,6 @@ public final class CadastroCandidatosService {
                         requisicao.cargo(), requisicao.numero(), partidoId);
             }).get(30, TimeUnit.SECONDS);
         } catch (ExecutionException e) {
-            // Excecoes de validacao da transacao chegam empacotadas no Future.
             Throwable causa = e;
             while (causa != null) {
                 if (causa instanceof CadastroException erro) throw erro;

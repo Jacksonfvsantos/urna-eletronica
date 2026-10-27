@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-/** Validacoes sem acesso a rede, testaveis separadamente do Firestore. */
 public final class ValidacaoVotacao {
     private ValidacaoVotacao() { }
 

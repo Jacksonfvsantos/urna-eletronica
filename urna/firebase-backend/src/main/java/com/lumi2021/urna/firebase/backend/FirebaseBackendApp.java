@@ -13,7 +13,6 @@ import java.util.Optional;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 
-/** Servico confiavel que consulta o Firestore. Nao distribuir a chave no aplicativo Swing. */
 public final class FirebaseBackendApp {
     private static final Logger log = LoggerFactory.getLogger(FirebaseBackendApp.class);
     private FirebaseBackendApp() { }
@@ -115,8 +114,6 @@ public final class FirebaseBackendApp {
                 ctx.status(500).json(Map.of("erro", "Falha ao consultar Pokemon"));
             }
         });
-        // Rota administrativa local: deliberadamente separada da API usada pelo eleitor.
-        // Sem token configurado, a escrita permanece desabilitada (503).
         app.post("/api/admin/candidatos", ctx -> {
             if (tokenAdmin == null || tokenAdmin.isBlank()) {
                 ctx.status(503).json(Map.of("erro", "Cadastro administrativo desabilitado"));
@@ -149,8 +146,6 @@ public final class FirebaseBackendApp {
             }
         });
 
-
-        // Mesario: cria um identificador de sessao de uso unico, sem identificar eleitor.
         app.post("/api/admin/sessoes", ctx -> {
             if (tokenAdmin == null || tokenAdmin.isBlank()) {
                 ctx.status(503).json(Map.of("erro", "Operacao administrativa desabilitada"));
@@ -170,8 +165,7 @@ public final class FirebaseBackendApp {
             }
         });
 
-        // Urna confiavel: transacao unica contendo os votos de VEREADOR e PREFEITO.
-        // Token de demonstracao SOMENTE local; nao incorporar em cliente distribuido.
+        // Nao distribuir o token de votacao no cliente Swing.
         app.post("/api/votacoes", ctx -> {
             if (tokenVotacao == null || tokenVotacao.isBlank()) {
                 ctx.status(503).json(Map.of("erro", "Registro de votos desabilitado"));
@@ -213,7 +207,7 @@ public final class FirebaseBackendApp {
 
     private static boolean tokenIgual(String esperado, String recebido) {
         if (recebido == null) return false;
-        // Comparacao em tempo constante (para valores do mesmo tamanho).
+        // Compara tokens sem interromper a verificacao no primeiro byte diferente.
         return MessageDigest.isEqual(
                 esperado.getBytes(StandardCharsets.UTF_8),
                 recebido.getBytes(StandardCharsets.UTF_8));

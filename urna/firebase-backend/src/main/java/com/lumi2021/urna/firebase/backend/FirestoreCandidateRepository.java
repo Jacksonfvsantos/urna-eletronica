@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-/** Consulta /eleicoes/{id}/candidatos e resolve referencias de Pokemon e partido. */
 public final class FirestoreCandidateRepository implements CandidateRepository {
     private final Firestore db;
     private final String eleicaoId;

@@ -11,8 +11,6 @@ dependencies {
 java { toolchain { languageVersion.set(JavaLanguageVersion.of(17)) } }
 application { mainClass.set("br.com.urnapokemon.ImportarPokemons") }
 
-// Mantem o importador original como :firebase-importador:run.
-// A configuracao dos candidatos e uma tarefa separada, de simulacao por padrao.
 tasks.register<JavaExec>("configurarCandidatos") {
     group = "application"
     description = "Valida o CSV de candidatos e cria apenas registros ausentes quando usado com --gravar"

@@ -1,6 +1,5 @@
 package com.lumi2021.urna.integration;
 
-/** Comando de teste: ./gradlew demoFirebase */
 public final class FirebaseIntegrationDemo {
     private FirebaseIntegrationDemo() { }
     public static void main(String[] args) throws Exception {

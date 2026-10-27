@@ -19,12 +19,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Cadastro inicial, exclusivo para a fase CONFIGURACAO da eleicao.
- * As atribuicoes de cargos/numeros sao feitas em um CSV escolhido pela equipe;
- * o Java verifica os Pokemon e partidos e salva os candidatos no Firestore.
- * Modo padrao: apenas simula; --gravar adiciona somente documentos ausentes.
- */
 public final class ConfigurarCandidatos {
     private static final String ELEICAO_PADRAO = "eleicao-001";
     private static final String CSV_PADRAO = "candidatos_exemplo.csv";

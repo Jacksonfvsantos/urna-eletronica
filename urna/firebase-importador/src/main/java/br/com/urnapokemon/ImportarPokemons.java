@@ -21,11 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Utilitario de carga unica para o Firestore.
- * Importa SOMENTE os documentos ausentes de /pokemons.
- * Nao modifica /partidos, /eleicoes, /candidatos ou /apuracao.
- */
+/** Importa apenas os Pokemon que ainda nao existem no Firestore. */
 public final class ImportarPokemons {
 
     private static final String CABECALHO =
@@ -45,7 +41,6 @@ public final class ImportarPokemons {
         }
         final boolean gravar = args.length == 1;
 
-        // Todo o CSV e conferido antes de qualquer acesso ao Firebase.
         var dados = lerCsv(Path.of("pokemon_151.csv"));
         System.out.printf("CSV validado: %d Pokemon da primeira geracao.%n", dados.size());
 
@@ -66,7 +61,6 @@ public final class ImportarPokemons {
         try {
             Firestore db = FirestoreClient.getFirestore(app);
 
-            // Verifica se todos os 15 partidos ja existem antes de tentar escrever.
             List<DocumentReference> partidoRefs = new ArrayList<>();
             for (String id : PARTIDOS_VALIDOS) {
                 partidoRefs.add(db.collection("partidos").document(id));
@@ -103,11 +97,11 @@ public final class ImportarPokemons {
                 return;
             }
 
-            // Um unico lote atomico (< 500 operacoes). O .create nao sobrescreve registros.
+            // O batch utiliza create para nao sobrescrever documentos existentes.
             WriteBatch lote = db.batch();
             for (int indice : ausentes) {
                 Map<String, Object> dadosPokemon = new HashMap<>(dados.get(indice));
-                dadosPokemon.remove("id");  // O id e a chave do documento, nao um campo.
+                dadosPokemon.remove("id");
                 lote.create(pokemonRefs.get(indice), dadosPokemon);
             }
             lote.commit().get();
@@ -130,7 +124,7 @@ public final class ImportarPokemons {
             String linha;
             while ((linha = leitor.readLine()) != null) {
                 if (linha.isBlank()) continue;
-                // CSV fornecido nao possui virgulas internas nem campos entre aspas.
+                // O formato deste CSV nao contem virgulas internas nem campos entre aspas.
                 String[] c = linha.split(",", -1);
                 if (c.length != 9) {
                     throw new IllegalArgumentException("Quantidade incorreta de colunas: " + linha);

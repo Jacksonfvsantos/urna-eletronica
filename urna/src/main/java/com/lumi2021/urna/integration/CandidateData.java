@@ -1,6 +1,5 @@
 package com.lumi2021.urna.integration;
 
-/** Dados retornados pela API, prontos para exibir na tela Swing. */
 public record CandidateData(
         String numero,
         String cargo,

@@ -14,11 +14,9 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
-    // Dependencias preexistentes - preservadas
     implementation("io.javalin:javalin:6.7.0")
     runtimeOnly("org.slf4j:slf4j-simple:2.0.16")
 
-    // Necessaria apenas para desserializar o JSON recebido pela interface HTTP
     implementation("com.fasterxml.jackson.core:jackson-databind:2.18.3")
 }
 
@@ -33,7 +31,6 @@ tasks.register<JavaExec>("run") {
     mainClass.set("com.lumi2021.urna.Program")
 }
 
-// Teste de leitura sem abrir a interface Swing
 tasks.register<JavaExec>("demoFirebase") {
     group = "application"
     description = "Consulta um candidato da API Firebase (ex.: Bulbasaur 12001)"
@@ -65,4 +62,3 @@ tasks.register<JavaExec>("demoVotacaoPost") {
         "com.lumi2021.urna.integration.FirebaseVotingPostDemo"
     )
 }
-

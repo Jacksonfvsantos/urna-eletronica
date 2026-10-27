@@ -1,4 +1,3 @@
-
 package com.lumi2021.urna.integration;
 
 import java.util.Optional;
@@ -12,25 +11,21 @@ public class FirebaseVotingDemo {
 
         String enderecoApi = "http://127.0.0.1:7070";
 
-        // 1. Verificar se a API esta funcionando
         FirebaseVotingClient clienteVotacao =
                 new FirebaseVotingClient(enderecoApi);
 
         System.out.println("Verificando a API...");
         System.out.println(clienteVotacao.verificarApi());
 
-        // 2. Criar o cliente de consulta de candidatos
         FirebaseCandidateClient clienteCandidatos =
                 new FirebaseCandidateClient(enderecoApi);
 
-        // 3. Consultar Bulbasaur pelo numero eleitoral
         Optional<CandidateData> resultado =
                 clienteCandidatos.buscarCandidato(
                         "VEREADOR",
                         "12001"
                 );
 
-        // 4. Verificar se o candidato existe
         if (resultado.isPresent()) {
 
             CandidateData candidato = resultado.get();
@@ -46,7 +41,7 @@ public class FirebaseVotingDemo {
         } else {
             System.out.println("Candidato nao encontrado.");
         }
-        
+
         VotoData votoVereador = new VotoData(
                 "VEREADOR",
                 "VALIDO",
@@ -72,5 +67,5 @@ public class FirebaseVotingDemo {
         System.out.println(corpoJson);
 
     }
-    
+
 }

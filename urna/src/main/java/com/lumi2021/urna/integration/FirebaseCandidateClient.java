@@ -13,7 +13,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Optional;
 
-/** Cliente HTTP: nao contem e nao usa credenciais administrativas do Firebase. */
 public final class FirebaseCandidateClient {
     private final HttpClient http = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(5)).build();
