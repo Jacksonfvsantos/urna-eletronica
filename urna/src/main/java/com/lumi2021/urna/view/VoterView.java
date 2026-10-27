@@ -1,12 +1,18 @@
 package com.lumi2021.urna.view;
 
+import com.lumi2021.urna.platform.InputService;
+
 import javax.swing.*;
 import java.awt.*;
 
 public class VoterView extends JFrame {
 
-    public VoterView() {
+    private final InputService inputService;
+
+    public VoterView(InputService inputService) {
         super("Terminal da urna");
+        this.inputService = inputService;
+        inputService.install(this);
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1000, 700);

@@ -5,11 +5,15 @@ import com.lumi2021.urna.controller.VoterController;
 import com.lumi2021.urna.controller.poolWorker.DesktopPoolWorkerController;
 import com.lumi2021.urna.controller.poolWorker.EmbeddedPoolWorkerController;
 import com.lumi2021.urna.controller.poolWorker.PoolWorkerController;
+import com.lumi2021.urna.platform.DesktopInputService;
+import com.lumi2021.urna.platform.InputService;
 import com.lumi2021.urna.view.*;
 import java.awt.event.*;
 import javax.swing.*;
 
 public class Program {
+
+    static InputService inputService;
 
     static PoolWorkerView poolWorkerView;
     static VoterView voterView;
@@ -35,8 +39,10 @@ public class Program {
         if (!isEmbedded) {
             // Executando no modo desktop
 
-            poolWorkerView = new PoolWorkerView();
-            voterView = new VoterView();
+            inputService = new DesktopInputService();
+
+            poolWorkerView = new PoolWorkerView(inputService);
+            voterView = new VoterView(inputService);
 
             poolWorkerController = new DesktopPoolWorkerController();
             voterController = new VoterController();
@@ -45,11 +51,9 @@ public class Program {
             var result = ballotBox.emitBulletin();
             //IO.println(result);
 
-            SwingUtilities.invokeLater(() -> {
-                poolWorkerView = new PoolWorkerView();
-                voterView = new VoterView();
-                bulletinView = new BulletinView(result);
+            bulletinView = new BulletinView(result);
 
+            SwingUtilities.invokeLater(() -> {
                 poolWorkerView.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
                 voterView.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
                 bulletinView.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -66,9 +70,11 @@ public class Program {
         else {
             // Executando no modo embarcado
 
+            inputService = new DesktopInputService();
+
             poolWorkerController = new DesktopPoolWorkerController();
             voterController = new VoterController();
-            votingScreenEmbeddedContainer = new VotingScreenEmbeddedContainer();
+            votingScreenEmbeddedContainer = new VotingScreenEmbeddedContainer(inputService);
 
             ballotBox = new BallotBox();
 

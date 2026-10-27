@@ -1,11 +1,18 @@
 package com.lumi2021.urna.view;
 
+import com.lumi2021.urna.platform.InputService;
+
 import javax.swing.*;
 import java.awt.*;
 
 public class PoolWorkerView extends JFrame {
-    public PoolWorkerView() {
+
+    private final InputService inputService;
+
+    public PoolWorkerView(InputService inputService) {
         super("Terminal do mesário");
+        this.inputService = inputService;
+        inputService.install(this);
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1000, 700);
