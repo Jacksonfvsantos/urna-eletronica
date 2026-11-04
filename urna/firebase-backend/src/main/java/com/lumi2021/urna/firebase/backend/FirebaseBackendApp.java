@@ -36,8 +36,16 @@ public final class FirebaseBackendApp {
         FirestoreLeituras leituras = new FirestoreLeituras(db, eleicaoId);
         CadastroCandidatosService cadastro = new CadastroCandidatosService(db, eleicaoId);
         RegistroVotacaoService votacao = new RegistroVotacaoService(db, eleicaoId);
+        FirestoreUrnaSnapshotService dadosIniciais = new FirestoreUrnaSnapshotService(db, eleicaoId);
         String tokenAdmin = System.getenv("URN_ADMIN_TOKEN");
         String tokenVotacao = System.getenv("URN_VOTING_TOKEN");
+        String tokenSnapshot = System.getenv("URN_SNAPSHOT_TOKEN");
+        if (tokenSnapshot != null && !tokenSnapshot.isBlank() && tokenSnapshot.length() < 32) {
+            throw new IllegalStateException("URN_SNAPSHOT_TOKEN deve ter ao menos 32 caracteres");
+        }
+        if (tokenSnapshot != null && (tokenSnapshot.equals(tokenAdmin) || tokenSnapshot.equals(tokenVotacao))) {
+            throw new IllegalStateException("Use um token exclusivo para carregar dados da urna");
+        }
         if (tokenVotacao != null && !tokenVotacao.isBlank() && tokenVotacao.length() < 32) {
             throw new IllegalStateException("URN_VOTING_TOKEN deve ter ao menos 32 caracteres");
         }
@@ -50,6 +58,26 @@ public final class FirebaseBackendApp {
 
         Javalin app = Javalin.create(config -> config.showJavalinBanner = false);
         app.get("/api/health", ctx -> ctx.json(Map.of("status", "ok", "servico", "urna-firebase")));
+        app.get("/api/admin/urna/dados-iniciais", ctx -> {
+            ctx.header("Cache-Control", "no-store");
+            if (tokenSnapshot == null || tokenSnapshot.isBlank()) {
+                ctx.status(503).json(Map.of("erro", "Carregamento inicial desabilitado"));
+                return;
+            }
+            if (!tokenIgual(tokenSnapshot, ctx.header("X-Snapshot-Token"))) {
+                ctx.status(401).json(Map.of("erro", "Nao autorizado"));
+                return;
+            }
+            try {
+                ctx.json(dadosIniciais.carregar());
+            } catch (IllegalStateException e) {
+                log.warn("Dados iniciais indisponiveis: {}", e.getMessage());
+                ctx.status(409).json(Map.of("erro", "Cadastro inicial indisponivel"));
+            } catch (Exception e) {
+                erroInterno(ctx.path(), e);
+                ctx.status(500).json(Map.of("erro", "Falha ao carregar dados iniciais"));
+            }
+        });
 
         app.get("/api/candidatos", ctx -> {
             try {
