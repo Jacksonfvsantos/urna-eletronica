@@ -118,14 +118,18 @@ public class VoterView extends JFrame {
         JPanel panelTeclado = new JPanel(new BorderLayout(0, 10));
         panelTeclado.setBackground(new Color(30, 30, 30));
         panelTeclado.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
-        panelTeclado.setPreferredSize(new Dimension(0, 340)); // Altura fixa para o bloco do teclado
+        panelTeclado.setPreferredSize(new Dimension(0, 370));
 
         JLabel lblTopo = new JLabel("JUSTIÇA ELEITORAL", SwingConstants.CENTER);
         lblTopo.setForeground(Color.WHITE);
         lblTopo.setFont(new Font("Arial", Font.BOLD, 16));
         panelTeclado.add(lblTopo, BorderLayout.NORTH);
 
-        // Botões Numéricos
+        // Painel central do teclado que agrupa os números e a coluna de ações lado a lado
+        JPanel panelCentroTeclado = new JPanel(new BorderLayout(15, 0));
+        panelCentroTeclado.setOpaque(false);
+
+        // 1. Botões Numéricos (Grade 4x3) à esquerda/centro
         JPanel panelNum = new JPanel(new GridLayout(4, 3, 8, 8));
         panelNum.setOpaque(false);
 
@@ -143,26 +147,27 @@ public class VoterView extends JFrame {
                 panelNum.add(btnsNumericos[num]);
             }
         }
+        panelCentroTeclado.add(panelNum, BorderLayout.CENTER);
 
-        // Botões de Ação
-        JPanel panelAcoes = new JPanel(new GridLayout(1, 3, 8, 0));
+        // 2. Botões de Ação em Coluna Vertical (à Direita)
+        JPanel panelAcoes = new JPanel(new GridLayout(3, 1, 0, 8));
         panelAcoes.setOpaque(false);
-        panelAcoes.setPreferredSize(new Dimension(0, 50));
+        panelAcoes.setPreferredSize(new Dimension(130, 0)); // Largura da coluna dos botões de ação
 
         btnBranco = new JButton("BRANCO");
-        btnBranco.setFont(new Font("Arial", Font.BOLD, 10));
+        btnBranco.setFont(new Font("Arial", Font.BOLD, 11));
         btnBranco.setBackground(Color.WHITE);
         btnBranco.setForeground(Color.BLACK);
         btnBranco.setFocusPainted(false);
 
         btnCorrige = new JButton("CORRIGE");
-        btnCorrige.setFont(new Font("Arial", Font.BOLD, 10));
+        btnCorrige.setFont(new Font("Arial", Font.BOLD, 11));
         btnCorrige.setBackground(new Color(230, 80, 40));
         btnCorrige.setForeground(Color.BLACK);
         btnCorrige.setFocusPainted(false);
 
         btnConfirma = new JButton("CONFIRMA");
-        btnConfirma.setFont(new Font("Arial", Font.BOLD, 9));
+        btnConfirma.setFont(new Font("Arial", Font.BOLD, 10));
         btnConfirma.setBackground(new Color(0, 180, 80));
         btnConfirma.setForeground(Color.BLACK);
         btnConfirma.setFocusPainted(false);
@@ -171,20 +176,14 @@ public class VoterView extends JFrame {
         panelAcoes.add(btnCorrige);
         panelAcoes.add(btnConfirma);
 
-        JPanel panelCentroTeclado = new JPanel(new BorderLayout(0, 10));
-        panelCentroTeclado.setOpaque(false);
-        panelCentroTeclado.add(panelNum, BorderLayout.CENTER);
-        panelCentroTeclado.add(panelAcoes, BorderLayout.SOUTH);
+        // Adiciona a coluna de ações à direita no painel central do teclado
+        panelCentroTeclado.add(panelAcoes, BorderLayout.EAST);
 
         panelTeclado.add(panelCentroTeclado, BorderLayout.CENTER);
 
-        // Posiciona o teclado na PARTE INFERIOR (SOUTH)
+        // Posiciona o teclado completo na parte inferior (SOUTH) da janela
         add(panelTeclado, BorderLayout.SOUTH);
-
-        // Inicializa com 5 caixas por padrão (Vereador)
-        prepararCaixasDigitos(5);
     }
-
     // ==================== MÉTODOS PÚBLICOS DE INTERFACE ====================
     // (Outro membro do grupo chamará estes métodos para atualizar a tela)
 
