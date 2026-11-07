@@ -7,9 +7,9 @@ import com.lumi2021.urna.domain.InMemoryElectorRepository;
 import com.lumi2021.urna.domain.models.CandidateEntity;
 import com.lumi2021.urna.domain.models.ElectoralPartyEntity;
 import com.lumi2021.urna.domain.models.ElectorEntity;
-import com.lumi2021.urna.integration.FirebaseSnapshotClient;
+import com.lumi2021.urna.infra.firebase.FirebaseConnection;
+import com.lumi2021.urna.infra.firebase.FirestoreUrnaSnapshotService;
 import com.lumi2021.urna.integration.UrnaSnapshotData;
-import java.io.IOException;
 import java.util.List;
 
 public final class UrnaRepositories {
@@ -24,17 +24,10 @@ public final class UrnaRepositories {
         this.eleitores = eleitores;
     }
 
-    public static UrnaRepositories carregarNaInicializacao()
-            throws IOException, InterruptedException {
-        String endereco = System.getenv().getOrDefault(
-                "URNA_API_URL", "http://127.0.0.1:7070");
-        String token = System.getenv("URN_SNAPSHOT_TOKEN");
-        UrnaSnapshotData dados = new FirebaseSnapshotClient(endereco).carregar(token);
-        String esperado = System.getenv("ELEICAO_ID");
-        if (esperado != null && !esperado.isBlank() && !esperado.equals(dados.eleicaoId())) {
-            throw new IOException("A API retornou uma eleicao diferente da configurada");
-        }
-        return aPartirDoSnapshot(dados);
+    /** Baixa o cadastro do Firestore (candidatos, partidos e eleitores) ao iniciar a urna. */
+    public static UrnaRepositories carregarNaInicializacao(FirebaseConnection firebase) throws Exception {
+        return aPartirDoSnapshot(new FirestoreUrnaSnapshotService(
+                firebase.firestore(), firebase.eleicaoId()).carregar());
     }
 
     public static UrnaRepositories aPartirDoSnapshot(UrnaSnapshotData dados) {
