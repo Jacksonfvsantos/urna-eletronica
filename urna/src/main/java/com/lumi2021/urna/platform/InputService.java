@@ -1,9 +1,15 @@
 package com.lumi2021.urna.platform;
 
-import javax.swing.*;
-import java.awt.*;
+import com.lumi2021.urna.platform.events.InputAction;
+import com.lumi2021.urna.platform.events.InputListener;
 
-public interface InputService extends KeyEventDispatcher {
+import javax.swing.*;
+
+public interface InputService{
     void install(JFrame window);
     void uninstall();
+
+    void emit(InputAction action);
+    void addListener(InputListener listener);
+    void removeListener(InputListener listener);
 }

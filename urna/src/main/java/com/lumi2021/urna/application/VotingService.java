@@ -19,7 +19,39 @@ public class VotingService {
         return registro.abrirSessao();
     }
 
-    public ConfirmacaoVotacao registrar(String sessaoId, List<VotoRequest> votos) throws Exception {
-        return registro.registrar(new VotacaoRequest(sessaoId, votos));
+    public void abrirEleicao(String eleicaoId) throws Exception {
+        registro.abrirEleicao(eleicaoId);
+    }
+
+    public ConfirmacaoVotacao registrar(String sessaoId, List<VotoRequest> votos) {
+        try {
+            return registro.registrar(new VotacaoRequest(sessaoId, votos));
+        }
+        catch (Exception e) {
+            System.err.println(e);
+            System.exit(1);
+            return null;
+        }
+    }
+
+    /** Adapta este serviço à porta usada pelo {@link VotingServer}. */
+    public VotingGateway asGateway() {
+        return new VotingGateway() {
+            @Override
+            public String abrirSessao() throws Exception {
+                return VotingService.this.abrirSessao().sessaoId();
+            }
+
+            @Override
+            public void abrirEleicao(String eleicaoId) throws Exception {
+                VotingService.this.abrirEleicao(eleicaoId);
+            }
+
+
+            @Override
+            public void registrar(String sessaoId, List<VotoRequest> votos) {
+                VotingService.this.registrar(sessaoId, votos);
+            }
+        };
     }
 }
