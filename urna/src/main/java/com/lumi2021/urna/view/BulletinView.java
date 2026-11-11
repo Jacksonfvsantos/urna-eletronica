@@ -6,6 +6,7 @@ import com.lumi2021.urna.domain.models.bulletinDocument.BulletinLine;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Objects;
 
 public final class BulletinView extends JFrame {
 
@@ -19,6 +20,9 @@ public final class BulletinView extends JFrame {
         JScrollPane scrollPane = new JScrollPane(renderer);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+
+        ImageIcon icon = new ImageIcon(Objects.requireNonNull(getClass().getResource("/icons/boletim-icon.png")));
+        setIconImage(icon.getImage());
 
         setContentPane(scrollPane);
 

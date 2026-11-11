@@ -60,6 +60,12 @@ public final class ValidacaoVotacao {
             super(mensagem);
             this.httpStatus = httpStatus;
         }
+
+        public VotacaoException(String mensagem) {
+            super(mensagem);
+            this.httpStatus = 0;
+        }
+
         public int httpStatus() { return httpStatus; }
     }
 }

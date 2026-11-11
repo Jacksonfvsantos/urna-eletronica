@@ -5,20 +5,13 @@ import com.lumi2021.urna.platform.InputService;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Objects;
 
 public class VoterView extends JFrame {
-
+    private final InputService inputService;
     private VoterController voterController;
 
-    private JLabel lblCargo;
-    private JPanel panelDigitos;
-    private JLabel[] lblDigitos;
-    private JLabel lblNome;
-    private JLabel lblPartido;
-    private JLabel lblMensagem;
-    private JLabel lblFoto;
-    private JPanel panelFoto;
-    private JPanel panelInstrucoes;
+    private VotingScreen screen;
 
     private JButton[] btnsNumericos = new JButton[10];
     private JButton btnBranco;
@@ -27,14 +20,15 @@ public class VoterView extends JFrame {
 
     public VoterView(InputService inputService, VoterController voterController) {
         super("Terminal da urna");
-        
-        //this.inputService = inputService;
-        //inputService.install(this);
+        this.inputService = inputService;
+        inputService.install(this);
 
         this.voterController = voterController;
 
         configurarJanela();
         inicializarComponentes();
+
+        voterController.setDisplay(screen::setModel);
     }
 
     private void configurarJanela() {
@@ -44,12 +38,15 @@ public class VoterView extends JFrame {
         setLocationRelativeTo(null);
         setResizable(false);
         getContentPane().setBackground(new Color(215, 215, 210));
+
+        ImageIcon icon = new ImageIcon(Objects.requireNonNull(getClass().getResource("/icons/urna-icon.png")));
+        setIconImage(icon.getImage());
     }
 
     private void inicializarComponentes() {
         // ==================== VISOR ====================
 
-        VotingScreen screen = new VotingScreen();
+        screen = new VotingScreen();
         screen.setBorder(BorderFactory.createLineBorder(Color.BLACK, 8));
 
         // Container que preserva a proporção 800:500 do visor.
@@ -124,6 +121,7 @@ public class VoterView extends JFrame {
 
             int num = Integer.parseInt(txt);
             JButton btn = criarBotaoNumerico(txt);
+            btn.addActionListener(e -> voterController.digit(num));
 
             btnsNumericos[num] = btn;
             panelNum.add(btn);
@@ -148,6 +146,10 @@ public class VoterView extends JFrame {
                 "CONFIRMA", new Color(0, 180, 80), Color.BLACK, 10
         );
 
+        btnBranco.addActionListener(e -> voterController.blank());
+        btnCorrige.addActionListener(e -> voterController.correct());
+        btnConfirma.addActionListener(e -> voterController.confirm());
+
         panelAcoes.add(btnBranco);
         panelAcoes.add(btnCorrige);
         panelAcoes.add(btnConfirma);
@@ -167,6 +169,47 @@ public class VoterView extends JFrame {
         mainPane.add(panelTeclado);
 
         setContentPane(mainPane);
+        instalarAtalhosDeTeclado(mainPane);
+    }
+
+    /** Teclado do computador: 0-9, B = BRANCO, BACKSPACE = CORRIGE, ENTER = CONFIRMA. */
+    private void instalarAtalhosDeTeclado(JComponent root) {
+        InputMap im = root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        ActionMap am = root.getActionMap();
+
+        for (int d = 0; d <= 9; d++) {
+            final int digit = d;
+            am.put("digit" + d, new AbstractAction() {
+                @Override
+                public void actionPerformed(java.awt.event.ActionEvent e) {
+                    voterController.digit(digit);
+                }
+            });
+            im.put(KeyStroke.getKeyStroke(String.valueOf(d)), "digit" + d);
+            im.put(KeyStroke.getKeyStroke("NUMPAD" + d), "digit" + d);
+        }
+
+        am.put("branco", new AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                voterController.blank();
+            }
+        });
+        am.put("corrige", new AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                voterController.correct();
+            }
+        });
+        am.put("confirma", new AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                voterController.confirm();
+            }
+        });
+        im.put(KeyStroke.getKeyStroke("B"), "branco");
+        im.put(KeyStroke.getKeyStroke("BACK_SPACE"), "corrige");
+        im.put(KeyStroke.getKeyStroke("ENTER"), "confirma");
     }
 
     // ==================== FACTORY METHODS ====================
@@ -178,6 +221,7 @@ public class VoterView extends JFrame {
         btn.setBackground(new Color(20, 20, 20));
         btn.setForeground(Color.WHITE);
         btn.setFocusPainted(false);
+        btn.setFocusable(false);
 
         return btn;
     }
@@ -194,72 +238,9 @@ public class VoterView extends JFrame {
         btn.setBackground(background);
         btn.setForeground(foreground);
         btn.setFocusPainted(false);
+        btn.setFocusable(false);
 
         return btn;
-    }
-
-    // ==================== MÉTODOS PÚBLICOS DE INTERFACE ====================
-    // (Outro membro do grupo chamará estes métodos para atualizar a tela)
-
-    public void setCargo(String cargo) {
-        lblCargo.setText(cargo.toUpperCase());
-    }
-
-    public void prepararCaixasDigitos(int quantidade) {
-        panelDigitos.removeAll();
-        lblDigitos = new JLabel[quantidade];
-
-        for (int i = 0; i < quantidade; i++) {
-            JLabel box = new JLabel("", SwingConstants.CENTER);
-            box.setPreferredSize(new Dimension(35, 40));
-            box.setFont(new Font("Arial", Font.BOLD, 22));
-            box.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
-            box.setOpaque(true);
-            box.setBackground(Color.WHITE);
-            lblDigitos[i] = box;
-            panelDigitos.add(box);
-        }
-        panelDigitos.revalidate();
-        panelDigitos.repaint();
-    }
-
-    public void atualizarDigito(int indice, String valor) {
-        if (indice >= 0 && indice < lblDigitos.length) {
-            lblDigitos[indice].setText(valor);
-        }
-    }
-
-    public void limparDigitos() {
-        for (JLabel lbl : lblDigitos) {
-            lbl.setText("");
-        }
-    }
-
-    public void setInfoCandidato(String nome, String partido, String fotoOuEmoji) {
-        lblNome.setText("Nome: " + nome);
-        lblPartido.setText("Partido: " + partido);
-        if (fotoOuEmoji != null && !fotoOuEmoji.isEmpty()) {
-            lblFoto.setText(fotoOuEmoji);
-            panelFoto.setVisible(true);
-        } else {
-            panelFoto.setVisible(false);
-        }
-    }
-
-    public void setMensagemAviso(String mensagem) {
-        lblMensagem.setText(mensagem);
-    }
-
-    public void exibirTelaFim() {
-        panelDigitos.setVisible(false);
-        lblCargo.setText("");
-        lblNome.setText("");
-        lblPartido.setText("");
-        lblMensagem.setText("F I M");
-        lblMensagem.setFont(new Font("Arial", Font.BOLD, 60));
-        lblMensagem.setBounds(110, 80, 300, 80);
-        panelFoto.setVisible(false);
-        panelInstrucoes.setVisible(false);
     }
 
 }

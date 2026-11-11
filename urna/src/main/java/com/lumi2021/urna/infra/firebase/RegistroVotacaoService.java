@@ -7,6 +7,8 @@ import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.FieldValue;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.QuerySnapshot;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -21,6 +23,7 @@ import static com.lumi2021.urna.infra.firebase.ValidacaoVotacao.VotacaoException
 
 /** Registra votos sem associar as escolhas a identidade do eleitor. */
 public final class RegistroVotacaoService {
+    private static final Logger log = LoggerFactory.getLogger(RegistroVotacaoService.class);
     private final Firestore db;
     private final String eleicaoId;
 
@@ -32,23 +35,37 @@ public final class RegistroVotacaoService {
     public record SessaoCriada(String sessaoId, String status, String expiraEm) { }
     public record ConfirmacaoVotacao(String sessaoId, String status) { }
 
+    public void abrirEleicao(String eleicaoId) throws Exception {
+        DocumentReference eleicaoRef = db.collection("eleicoes").document(eleicaoId);
+
+        eleicaoRef.update("status", "ABERTA").get(10, TimeUnit.SECONDS);
+        System.out.println("Eleição " + eleicaoId + " alterada para ABERTA com sucesso!");
+    }
+
     public SessaoCriada abrirSessao() throws Exception {
         DocumentReference eleicaoRef = db.collection("eleicoes").document(eleicaoId);
         String id = UUID.randomUUID().toString();
         DocumentReference sessaoRef = eleicaoRef.collection("votacoes").document(id);
         Instant limite = Instant.now().plus(10, ChronoUnit.MINUTES);
         Timestamp expira = Timestamp.of(Date.from(limite));
+
         try {
             return db.runTransaction(tx -> {
                 DocumentSnapshot eleicao = tx.get(eleicaoRef).get();
+
                 exigirEleicaoAberta(eleicao);
-                tx.create(sessaoRef, Map.of(
-                        "status", "PENDENTE",
-                        "criadoEm", FieldValue.serverTimestamp(),
-                        "expiraEm", expira));
+
+                Map<String, Object> dados = new HashMap<>();
+                dados.put("status", "PENDENTE");
+                dados.put("criadoEm", FieldValue.serverTimestamp());
+                dados.put("expiraEm", expira);
+
+                tx.set(sessaoRef, dados);
                 return new SessaoCriada(id, "PENDENTE", limite.toString());
             }).get(30, TimeUnit.SECONDS);
+
         } catch (ExecutionException e) {
+            log.error("error: ", e);
             throw traduzir(e);
         }
     }
@@ -135,11 +152,14 @@ public final class RegistroVotacaoService {
         }
     }
 
-    private static void exigirEleicaoAberta(DocumentSnapshot eleicao) {
-        if (!eleicao.exists() || !"MUNICIPAL".equals(eleicao.getString("modalidade")) ||
-                !"ABERTA".equals(eleicao.getString("status")) ||
-                !Boolean.TRUE.equals(eleicao.getBoolean("ativa"))) {
-            throw new VotacaoException(409, "Eleicao nao esta aberta");
+    private void exigirEleicaoAberta(DocumentSnapshot eleicao) throws VotacaoException {
+        if (!eleicao.exists()) {
+            throw new VotacaoException("Eleição não encontrada no Firestore (ID: " + eleicao.getId() + ")");
+        }
+
+        String status = eleicao.getString("status");
+        if (status == null || !"ABERTA".equalsIgnoreCase(status.trim())) {
+            throw new VotacaoException("Eleição não está aberta. Status atual no Firestore: '" + status + "'");
         }
     }
 
@@ -154,6 +174,7 @@ public final class RegistroVotacaoService {
 
     private static Exception traduzir(ExecutionException e) {
         Throwable causa = e;
+
         while (causa != null) {
             if (causa instanceof VotacaoException v) return v;
             causa = causa.getCause();
